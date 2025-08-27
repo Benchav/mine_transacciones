@@ -1,22 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-mineria_ejercicios.py
-
-Script para:
- - Preprocesar un CSV de transacciones
- - Market Basket Analysis (Apriori si mlxtend está disponible; fallback por pares)
- - Cálculo de RFM y clustering (K-Means)
- - Guardado de resultados (CSV y gráficos) en una carpeta de salida
-
-Uso:
-    python mineria_ejercicios.py --input data/ventas_ejemplo.csv --outdir outputs [--use_apriori]
-
-Dependencias recomendadas:
-    pandas, numpy, matplotlib, scikit-learn, mlxtend (opcional), python-docx (opcional)
-    
-Si no tienes mlxtend, el script automáticamente usa el fallback por pares.
-"""
 import os
 import argparse
 import logging

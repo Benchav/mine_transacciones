@@ -1,6 +1,9 @@
 pandas
 numpy
 matplotlib
+seaborn
 scikit-learn
-mlxtend       
-python-docx  
+mlxtend
+networkx
+python-docx
+Unidecode

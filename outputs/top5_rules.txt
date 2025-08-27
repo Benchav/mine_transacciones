@@ -1,0 +1,3 @@
+Empty DataFrame
+Columns: [antecedents, consequents, support, confidence, lift]
+Index: []

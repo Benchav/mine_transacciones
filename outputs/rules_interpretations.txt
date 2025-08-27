@@ -1,0 +1,4 @@
+Interpretaciones automatizadas de las 5 reglas top
+
+Fuente: Apriori (outputs_apriori/rules_apriori.csv)
+
