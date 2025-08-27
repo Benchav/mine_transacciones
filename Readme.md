@@ -1,167 +1,207 @@
-# README --- Minería de Transacciones (Market Basket + RFM)
+# README — Minería de Transacciones (Market Basket + RFM + Clustering)
 
-Este repositorio contiene código y scripts para realizar un análisis de
-cesta de compra (Market Basket Analysis) y segmentación de clientes
-(RFM + clustering) sobre un dataset de transacciones
-(`ventas_ejemplo.csv`).\
-La guía siguiente explica **paso a paso** desde cero cómo preparar el
-entorno, ejecutar los análisis, qué hace cada archivo y cómo generar los
-entregables (gráficos, tablas, informe).
+Este proyecto implementa un pipeline completo para:  
+- **Análisis de cesta de compras (Market Basket Analysis)** con reglas de asociación (Apriori o fallback por pares).  
+- **Segmentación de clientes (RFM + K-Means)** con evaluación de `k` y perfiles de clusters.  
+- **Generación automática de reportes** en Word con tablas, reglas, gráficos y radar.  
 
-------------------------------------------------------------------------
+El flujo está diseñado para que, incluso si eliminas todos los resultados (`outputs/` y `outputs_apriori/`), puedas **regenerar todo paso a paso** con los comandos que verás a continuación.  
 
-## Estructura del proyecto
+---
 
-    mine_transacciones/
-    ├─ data/
-    │  └─ ventas_ejemplo.csv
-    ├─ outputs/
-    │  ├─ ventas_preprocessed.csv
-    │  ├─ top10_support.png
-    │  ├─ rules_pairs_top.csv
-    │  ├─ top5_rules.txt
-    │  ├─ rfm_clusters.csv
-    │  ├─ Perfil_de_clusters.csv
-    │  ├─ Evaluaci_n_K__Elbow___Silhouette_.csv
-    │  ├─ rfm_scatter.png
-    │  └─ rfm_radar.png
-    ├─ outputs_apriori/
-    │  ├─ rules_apriori.csv
-    │  └─ rules_network.png
-    ├─ scripts/
-    │  ├─ clean_descriptions.py
-    │  ├─ run_apriori.py
-    │  ├─ plot_rules_network.py
-    │  ├─ radar_clusters.py
-    │  ├─ generate_rule_interpretations.py
-    │  ├─ generate_report.py
-    │  └─ top5_rules_to_txt.py
-    ├─ src/
-    │  └─ mineria_ejercicios.py
-    ├─ venv/
-    ├─ requirements.txt
-    └─ README.md
+## 📂 Estructura del Proyecto
 
-------------------------------------------------------------------------
+```
+mine_transacciones/
+├─ data/
+│  └─ ventas_ejemplo.csv
+├─ outputs/                # Se regenera al correr los scripts
+│  ├─ ventas_preprocessed.csv
+│  ├─ rules_pairs_top.csv
+│  ├─ rules_network_fallback.png
+│  ├─ rfm_clusters.csv
+│  ├─ Perfil_de_clusters.csv
+│  ├─ Evaluaci_n_K__Elbow___Silhouette_.csv
+│  ├─ rfm_scatter.png / rfm_scatter_colored.png
+│  ├─ rfm_radar.png
+│  ├─ top10_support.png
+│  ├─ rules_interpretations.txt
+│  ├─ top5_rules.txt
+│  └─ informe_minero.docx
+├─ outputs_apriori/        # Se crea si usas Apriori
+│  ├─ rules_apriori.csv
+│  └─ rules_network.png
+├─ scripts/
+│  ├─ clean_descriptions.py
+│  ├─ run_apriori.py
+│  ├─ plot_rules_network.py
+│  ├─ plot_rules_network_fallback.py
+│  ├─ radar_clusters.py
+│  ├─ generate_rule_interpretations.py
+│  ├─ top5_rules_to_txt.py
+│  ├─ generate_report.py
+│  └─ generate_report_extended.py
+├─ src/
+│  └─ mineria_ejercicios.py
+├─ venv/                   # Entorno virtual (no versionar)
+├─ requirements.txt
+└─ README.md
+```
 
-## Instalación de dependencias
+---
 
-``` bash
+## ⚙️ Instalación de dependencias
+
+Desde cero (Windows PowerShell):
+
+```powershell
+# 1) Clonar o entrar a la carpeta
+cd C:\Users\joshu\Downloads\mine_transacciones
+
+# 2) Crear entorno virtual
 python -m venv venv
-# Windows
-.env\Scripts\Activate.ps1
 
+# 3) Activar entorno
+.\venv\Scripts\Activate.ps1
+
+# 4) Instalar dependencias
 python -m pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 
-Dependencias principales:
+En Linux / macOS:
 
-    pandas
-    numpy
-    matplotlib
-    seaborn
-    scikit-learn
-    mlxtend
-    networkx
-    python-docx
-    Unidecode
+```bash
+cd ~/mine_transacciones
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+```
 
-------------------------------------------------------------------------
+---
 
-## Ejecución del análisis
+## ▶️ Flujo paso a paso para regenerar todo
 
-### Script principal
+### 1. Limpieza de descripciones (opcional)
+```powershell
+python scripts/clean_descriptions.py
+```
 
-``` bash
+Esto normaliza nombres de productos (`Descripción → description limpia`).
+
+---
+
+### 2. Ejecutar análisis completo (pipeline principal)
+Si tu profesor borró todos los **CSV y gráficos**, este comando recrea `ventas_preprocessed.csv`, reglas, RFM y clusters:
+
+```powershell
 python src/mineria_ejercicios.py --input data/ventas_ejemplo.csv --outdir outputs
 ```
 
-Opciones adicionales: - `--use_apriori` → usar Apriori si `mlxtend` está
-instalado - `--min_support 0.02` - `--min_confidence 0.3` -
-`--top_n_items 50` - `--k_min 2 --k_max 8`
+Opciones:
+- `--use_apriori` → intenta usar Apriori con `mlxtend`.
+- `--min_support 0.01` → soporte mínimo (ajústalo si no aparecen reglas).
+- `--min_confidence 0.25` → confianza mínima.
+- `--top_n_items 50` → número de productos en fallback.
+- `--k_min 2 --k_max 8` → rango de clusters para K-Means.
 
 Ejemplo con Apriori:
 
-``` bash
-python src/mineria_ejercicios.py --input data/ventas_ejemplo.csv --outdir outputs_apriori --use_apriori --min_support 0.02 --min_confidence 0.3
+```powershell
+python src/mineria_ejercicios.py --input data/ventas_ejemplo.csv --outdir outputs_apriori --use_apriori --min_support 0.01 --min_confidence 0.25
 ```
 
-------------------------------------------------------------------------
+---
 
-## Scripts auxiliares
+### 3. Generar red de reglas
+Si `rules_apriori.csv` está vacío, usa fallback.  
+El siguiente script ya detecta si debe usar Apriori o fallback:
 
--   `scripts/clean_descriptions.py` → Limpieza de descripciones de
-    productos.
--   `scripts/run_apriori.py` → Corre Apriori sobre
-    `ventas_preprocessed.csv`.
--   `scripts/plot_rules_network.py` → Visualiza reglas como red
-    (`rules_network.png`).
--   `scripts/radar_clusters.py` → Radar chart de clusters
-    (`rfm_radar.png`).
--   `scripts/generate_rule_interpretations.py` → Explicaciones
-    automáticas de reglas (`rules_interpretations.txt`).
--   `scripts/top5_rules_to_txt.py` → Extrae top 5 reglas
-    (`top5_rules.txt`).
--   `scripts/generate_report.py` → Informe Word (`informe_minero.docx`).
+```powershell
+python scripts/plot_rules_network.py
+```
 
-------------------------------------------------------------------------
+Resultado → `outputs_apriori/rules_network.png` o `outputs/rules_network_fallback.png`
 
-## Archivos de salida importantes
+---
 
--   `ventas_preprocessed.csv` → dataset limpio
--   `rules_apriori.csv` / `rules_pairs_top.csv` → reglas con
-    support/confidence/lift
--   `rules_network.png` → red de reglas
--   `top5_rules.txt` y `rules_interpretations.txt` → reglas principales
--   `rfm_clusters.csv` → clientes con cluster asignado
--   `Perfil_de_clusters.csv` → perfil de cada cluster
--   `rfm_scatter.png` y `rfm_radar.png` → gráficos RFM
+### 4. Interpretar reglas y extraer top 5
+```powershell
+python scripts/generate_rule_interpretations.py
+python scripts/top5_rules_to_txt.py
+```
 
-------------------------------------------------------------------------
+Genera:  
+- `outputs/rules_interpretations.txt`  
+- `outputs/top5_rules.txt`  
 
-## Flujo recomendado para entregar
+---
 
-1.  Limpiar descripciones
+### 5. Visualizar clusters con radar
+```powershell
+python scripts/radar_clusters.py
+```
 
-    ``` bash
-    python scripts/clean_descriptions.py
-    ```
+Genera `outputs/rfm_radar.png`.
 
-2.  Ejecutar análisis con Apriori
+---
 
-    ``` bash
-    python src/mineria_ejercicios.py --input data/ventas_ejemplo.csv --outdir outputs_apriori --use_apriori
-    ```
+### 6. Generar informe automático
+Versión básica:
+```powershell
+python scripts/generate_report.py
+```
 
-3.  Graficar red de reglas
+Versión extendida (incluye más tablas y gráficos):
+```powershell
+python scripts/generate_report_extended.py
+```
 
-    ``` bash
-    python scripts/plot_rules_network.py
-    ```
+Resultado:  
+- `outputs/informe_minero.docx`  
+- o `outputs/informe_minero_extended.docx`
 
-4.  Generar interpretaciones y top reglas
+---
 
-    ``` bash
-    python scripts/generate_rule_interpretations.py
-    python scripts/top5_rules_to_txt.py
-    ```
+## 📊 Archivos de salida finales esperados
 
-5.  Generar radar clusters
+- `ventas_preprocessed.csv` → dataset limpio.  
+- `rules_apriori.csv` / `rules_pairs_top.csv` → reglas con métricas.  
+- `rules_network.png` o `rules_network_fallback.png` → red de reglas.  
+- `top10_support.png` → gráfico de productos más frecuentes.  
+- `top5_rules.txt` y `rules_interpretations.txt` → reglas principales.  
+- `rfm_clusters.csv` → clientes con cluster asignado.  
+- `Perfil_de_clusters.csv` → perfil medio de cada cluster.  
+- `rfm_scatter.png` y `rfm_radar.png` → gráficos de clientes.  
+- `informe_minero.docx` → reporte con resultados.  
 
-    ``` bash
-    python scripts/radar_clusters.py
-    ```
+---
 
-6.  Generar informe
+## 🚀 Ejemplo de regeneración completa (si borraste todo)
 
-    ``` bash
-    python scripts/generate_report.py
-    ```
+```powershell
+# Activar entorno
+.\venv\Scripts\Activate.ps1
 
-------------------------------------------------------------------------
+# 1) Ejecutar pipeline principal
+python src/mineria_ejercicios.py --input data/ventas_ejemplo.csv --outdir outputs --use_apriori --min_support 0.01 --min_confidence 0.25
 
-## Crado por:
+# 2) Generar red de reglas
+python scripts/plot_rules_network.py
 
-Proyecto creado por **Joshua Chaves** ---
-https://joshuachavez.vercel.app/
+# 3) Generar interpretaciones y top reglas
+python scripts/generate_rule_interpretations.py
+python scripts/top5_rules_to_txt.py
+
+# 4) Generar radar de clusters
+python scripts/radar_clusters.py
+
+# 5) Generar informe final
+python scripts/generate_report_extended.py
+```
+
+Al terminar tendrás todos los **CSV, gráficos y el informe Word** listos. ✅  
+
+
+**Autor:** Joshua Chaves — [https://joshuachavez.vercel.app/](https://joshuachavez.vercel.app/)  
